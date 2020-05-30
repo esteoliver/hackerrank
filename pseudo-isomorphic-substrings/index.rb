@@ -1,89 +1,61 @@
 #!/bin/ruby
 
+def to_sequence(s)
+  dictionary = {}
+  value = 0
+
+  s.map do |char|
+    if dictionary[char].nil?
+      dictionary[char] = value
+      value += 1
+    end
+
+    dictionary[char]
+  end
+end
+
 #
 # Complete the pseudoIsomorphicSubstrings function below.
 #
 def pseudoIsomorphicSubstrings(s)
-  prefix_set_sizes = Array.new(s.length, 0)
-  prefix_set_sizes[0] = 1
-  tree = []
-  start = 0
 
-  while (start < s.length) do
+  size = 1  # this show the current size of the set i
+  graph = { 0 => {} } # representation of the set sequences
+  sizes = []
 
-    check = nil
-    dictionary = {}
-    dictionary_next_val = '0'
-
-    status = [s[start], start, '', s[start+1..-1]]
-
-    while !status.empty? do
-
-      string, prefix_index, sequence, child = status
-
-      if string.length == 1
-        sequence << dictionary_next_val
-        dictionary[string.to_sym] = dictionary_next_val
-        dictionary_next_val = dictionary_next_val.next
-
-        check = true
-
-        if child.empty?
-            break
-        end
-
-        status[0], status[1], status[2], status[3] = [string.concat(child[0]), prefix_index + 1, sequence, child[1..-1]]
-        next
-      end
-
-      level = string.length - 1
-
-      tree[level] = [] if tree[level].nil?
-
-      translation = dictionary[string[-1].to_sym]
-
-      if translation.nil?
-        translation = dictionary_next_val
-        dictionary[string[-1].to_sym] = dictionary_next_val
-        dictionary_next_val = dictionary_next_val.next
-      end
-
-      sequence = sequence + translation
-
-      if check
-        i = -1
-        exists = true
-
-        compare_with = tree[level].dup
-        while (exists && !sequence[i].nil?) do
-          compare_with.select! { |n| sequence[i] == n[i] }
-          exists &&= compare_with.length > 0
-          i -= 1
-        end
-
-        check = exists
-      end
-
-      if !check
-        tree[level] << sequence
-        prefix_set_sizes[prefix_index] += 1
-      end
-
-      if child.empty?
-        break
-      end
-
-      status[0], status[1], status[2], status[3] = [string.concat(child[0]), prefix_index + 1, sequence, child[1..-1]]
+  s_chars = s.chars
+ 
+  s.size.times do |pi| # Si' : Prefix i
+    if pi == 0
+      sizes << size
+      next 
     end
-    start += 1
 
-    break if check
+    substrings = [s_chars[0..pi]]
+
+    while !substrings.empty? do
+      sub = substrings.pop
+
+      sequence = to_sequence(sub)
+
+      # for every sequence, N-1 must exists and we only check if we can add the last bit
+      pos = graph
+      sequence[0..-2].each do |bit|
+        pos = pos[bit]
+      end
+  
+      next unless pos[sequence.last].nil?
+
+      pos[sequence.last] = {}
+      size += 1
+
+      substrings << sub[1..-1] 
+    end
+
+    sizes << size
   end
 
-  prefix_set_sizes.inject([]) do |acc, n|
-    acc << (acc.last || 0) + n
-    acc
-  end
+  sizes
 end
 
 
