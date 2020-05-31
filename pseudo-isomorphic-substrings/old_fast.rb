@@ -1,12 +1,15 @@
+require 'benchmark'
+
 def pseudoIsomorphicSubstrings(s)
   prefix_set_sizes = Array.new(s.length, 0)
   prefix_set_sizes[0] = 1
   tree = []
   start = 0
+  iter = 0
 
   while (start < s.length) do
 
-    check = nil
+    check = true
     dictionary = {}
     dictionary_next_val = '0'
 
@@ -46,6 +49,7 @@ def pseudoIsomorphicSubstrings(s)
       sequence = sequence + translation
 
       if check
+        iter += 1
         i = -1
         exists = true
 
@@ -75,8 +79,25 @@ def pseudoIsomorphicSubstrings(s)
     break if check
   end
 
+  puts "checks: #{iter}"
+
   prefix_set_sizes.inject([]) do |acc, n|
     acc << (acc.last || 0) + n
     acc
   end
 end
+
+time = Benchmark.measure do
+  fptr = File.open('result.txt', 'w')
+
+  s = gets.to_s.rstrip
+  
+  result = pseudoIsomorphicSubstrings s
+
+  fptr.write result.join "\n"
+  fptr.write "\n"
+  
+  fptr.close()  
+end
+
+puts time
